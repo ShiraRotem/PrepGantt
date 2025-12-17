@@ -1,0 +1,5 @@
+{
+  "name": "Interview Prep Gantt",
+  "description": "A comprehensive product interview preparation planner with a table for requirement definition and a calendar for scheduling prep hours (blocks) with drag-and-drop functionality.",
+  "requestFramePermissions": []
+}
