@@ -31,3 +31,16 @@ export interface ProductRow {
   color: string;
   comment?: string;
 }
+
+export interface User {
+  id: string;
+  email: string;
+}
+
+export interface PrepPlan {
+  id: string;
+  userId: string;
+  name: string;
+  blocks: Block[];
+  updatedAt: string;
+}

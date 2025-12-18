@@ -1,5 +1,5 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import { Block } from '../types';
 import WeekPicker from './WeekPicker';
 import BlockItem from './BlockItem';
@@ -24,6 +24,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   onDragStart
 }) => {
   const hours = Array.from({ length: 24 }, (_, i) => i);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const hour8Ref = useRef<HTMLDivElement>(null);
   
   const startOfWeek = useMemo(() => {
     const d = new Date(currentDate);
@@ -33,6 +35,15 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     result.setHours(0, 0, 0, 0);
     return result;
   }, [currentDate]);
+
+  // Scroll to 8 AM on mount
+  useEffect(() => {
+    if (hour8Ref.current && scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const target = hour8Ref.current;
+      container.scrollTop = target.offsetTop - 100; // Offset for headers
+    }
+  }, []);
 
   const weekDays = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) => {
@@ -52,27 +63,20 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     const scheduledAt = new Date(date);
     scheduledAt.setHours(hour, 0, 0, 0);
     
-    // Collision detection: Check if any block is already at this time
     const collision = blocks.find(b => b.scheduledAt === scheduledAt.toISOString());
-    if (collision) {
-      // Snapping back happens naturally if we don't update state
-      console.warn("Collision detected at", scheduledAt.toISOString());
-      return;
-    }
+    if (collision) return;
 
     onBlockMove(blockId, scheduledAt.toISOString());
   };
 
   return (
     <div className="flex flex-col h-full bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
-      {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/50">
         <h2 className="text-lg font-bold text-slate-800">Weekly Schedule</h2>
         <WeekPicker currentDate={currentDate} onDateChange={onDateChange} />
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar relative flex flex-col">
-        {/* Day Labels */}
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto custom-scrollbar relative flex flex-col">
         <div className="flex border-b border-slate-200 sticky top-0 z-20 bg-white">
           <div className="w-16 flex-shrink-0 border-r border-slate-200"></div>
           {weekDays.map((day, i) => (
@@ -83,18 +87,19 @@ const CalendarView: React.FC<CalendarViewProps> = ({
           ))}
         </div>
 
-        {/* Grid */}
         <div className="flex flex-1">
-          {/* Hour labels */}
           <div className="w-16 flex-shrink-0 bg-slate-50/30 border-r border-slate-200">
             {hours.map(hour => (
-              <div key={hour} className="h-16 text-[10px] text-slate-400 font-medium pr-2 text-right pt-2 border-b border-slate-100 last:border-b-0">
+              <div 
+                key={hour} 
+                ref={hour === 8 ? hour8Ref : null}
+                className="h-16 text-[10px] text-slate-400 font-medium pr-2 text-right pt-2 border-b border-slate-100 last:border-b-0"
+              >
                 {hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`}
               </div>
             ))}
           </div>
 
-          {/* Slots */}
           <div className="flex flex-1">
             {weekDays.map((day, dayIdx) => (
               <div key={dayIdx} className="flex-1 border-r last:border-r-0 border-slate-200 relative">
