@@ -65,17 +65,18 @@ const App: React.FC = () => {
     saveToLocalStorage(blocks);
   };
 
+  // Fixed TypeScript error: explicitly typing the new block to ensure 'status' is BlockStatus
   const addBlock = useCallback((productType: ProductType, prepType: PrepType) => {
     setBlocks(prev => {
-      const newState = [...prev, {
+      const newBlock: Block = {
         id: `${prepType}-${productType}-${Math.random().toString(36).substr(2, 9)}`,
         productType,
         prepType,
         comment: '',
         status: 'pile',
         isDone: false
-      }];
-      return newState;
+      };
+      return [...prev, newBlock];
     });
   }, []);
 
@@ -109,7 +110,7 @@ const App: React.FC = () => {
   const handleBlockMove = useCallback((id: string, scheduledAt: string | undefined) => {
     setBlocks(prev => prev.map(b => 
       b.id === id 
-        ? { ...b, status: scheduledAt ? 'placed' : 'pile', scheduledAt: scheduledAt || undefined } 
+        ? { ...b, status: (scheduledAt ? 'placed' : 'pile') as Block['status'], scheduledAt: scheduledAt || undefined } 
         : b
     ));
   }, []);
